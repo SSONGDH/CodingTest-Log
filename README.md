@@ -15,7 +15,7 @@
 | Lv.1 | 10 |
 | Lv.2 | 0 |
 | Lv.3 | 0 |
-| SQL | 0 |
+| SQL | 10 |
 
 ## 폴더 구조
 
@@ -28,6 +28,7 @@
 │   └── lv3/
 ├── sql/                # SQL 풀이 (고득점 Kit 카테고리별)
 │   ├── select/
+│   ├── sum-max-min/
 │   ├── group-by/
 │   ├── join/
 │   ├── string-date/

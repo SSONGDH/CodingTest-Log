@@ -1,0 +1,1 @@
+SELECT max(DATETIME) AS time from ANIMAL_INS
