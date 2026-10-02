@@ -4,6 +4,7 @@
 
 - [enumerate](#enumerate) · [sort / sorted](#sort--sorted) · [split / map](#split--map) · [zip](#zip)
 - [음수 인덱스](#음수-인덱스--1) · [startswith](#startswith) · [dict.get](#dictget) · [deque](#deque)
+- [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
 
 ---
 
@@ -205,3 +206,106 @@ while q:           # 빌 때까지 반복
 - 스택(뒤에서 넣고 뒤에서 빼기)은 그냥 리스트 `append` / `pop`으로 충분
 - 큐(뒤에서 넣고 앞에서 빼기)는 `deque`
 - 쓴 문제: 기능개발, 프로세스
+
+---
+
+## * 언패킹 / itertools.product
+
+**`*`**: 리스트 안의 원소를 하나씩 꺼내서 따로따로 넘김
+
+```python
+l = [(1, -1), (2, -2)]
+print(*l)            # (1, -1) (2, -2)
+f(*l)                # f((1, -1), (2, -2)) 와 같음
+```
+
+### product 사용법
+
+각 묶음에서 **하나씩** 골라 만들 수 있는 **모든 조합**. n중 for문을 한 줄로 쓰는 것
+
+**① 기본: 묶음을 여러 개 넘기기**
+
+```python
+from itertools import product
+
+list(product([1, 2], ['a', 'b']))
+# [(1, 'a'), (1, 'b'), (2, 'a'), (2, 'b')]
+```
+
+- 아래 이중 for문과 같음 (앞 묶음이 바깥 반복)
+
+```python
+for x in [1, 2]:
+    for y in ['a', 'b']:
+        (x, y)
+```
+
+- 결과 개수 = 각 묶음 길이의 곱 (2 × 2 = 4)
+- 결과는 **튜플**이고, `product(...)` 자체는 리스트가 아니라서 출력하려면 `list()`로 감싸기
+  - `for`로 돌 때는 `list()` 없이 바로 써도 됨
+
+**② `repeat`: 같은 묶음을 여러 번**
+
+```python
+list(product([0, 1], repeat=3))
+# [(0,0,0), (0,0,1), (0,1,0), (0,1,1), (1,0,0), (1,0,1), (1,1,0), (1,1,1)]
+
+list(product('AB', repeat=2))
+# [('A','A'), ('A','B'), ('B','A'), ('B','B')]
+```
+
+- `product([0, 1], [0, 1], [0, 1])`과 같음
+- 문자열도 글자 하나씩 묶음으로 취급
+
+**③ 묶음 개수가 정해져 있지 않을 때: 리스트 만들고 `*`로 풀기**
+
+```python
+numbers = [4, 1, 2, 1]
+l = [(x, -x) for x in numbers]   # [(4,-4), (1,-1), (2,-2), (1,-1)]
+product(*l)                      # product((4,-4), (1,-1), (2,-2), (1,-1))
+```
+
+- `product(l)`로 쓰면 리스트 하나만 넘긴 것이라 원하는 결과가 안 나옴 → **`*` 필수**
+
+**④ 조합마다 계산하기**
+
+```python
+for combo in product(*l):
+    total = sum(combo)          # (4, -1, 2, -1) → 4
+
+sums = list(map(sum, product(*l)))   # 모든 합을 한 번에
+sums = [sum(c) for c in product(*l)] # 같은 뜻 (리스트 컴프리헨션)
+```
+
+**⑤ 코테에서 자주 쓰는 형태**
+
+```python
+# 숫자마다 + 또는 - (타겟 넘버)
+product(*[(x, -x) for x in numbers])
+
+# 각 자리에 올 수 있는 글자 전부 (모음 사전류)
+product('AEIOU', repeat=5)
+
+# 켜기/끄기 모든 경우 (부분집합)
+for bits in product([0, 1], repeat=len(arr)):
+    chosen = [arr[i] for i in range(len(arr)) if bits[i]]
+
+# 이중 for문 대신 좌표 전부 돌기
+for r, c in product(range(n), range(m)):
+    grid[r][c]
+```
+
+**주의**
+
+- 경우의 수가 곱으로 늘어남: `(+, -)` 20개면 2²⁰ ≈ 100만 개 (가능), 30개면 약 10억 개 (시간 초과)
+- `list()`로 감싸면 전부 메모리에 올라가니, 개수가 많으면 `for`로 바로 돌기
+
+**itertools 비교** (`[1, 2, 3]`에서 2개)
+
+| 함수 | 의미 | 개수 |
+|---|---|---|
+| `product(arr, repeat=2)` | 중복 허용, 순서 있음 | 9 |
+| `permutations(arr, 2)` | 순열: 중복 X, 순서 있음 | 6 |
+| `combinations(arr, 2)` | 조합: 중복 X, 순서 없음 | 3 |
+
+- 쓴 문제: 타겟 넘버 (product), 두 개 뽑아서 더하기 (combinations로도 가능)
