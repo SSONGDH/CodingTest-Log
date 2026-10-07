@@ -16,6 +16,35 @@ def bfs(start, graph):
                 queue.append(nxt)
 ```
 
+**격자(맵) 최단거리** (게임 맵 최단거리)
+
+```python
+from collections import deque
+
+def bfs(maps):
+    n, m = len(maps), len(maps[0])
+    dist = [[0] * m for _ in range(n)]     # 0 = 미방문, 값 = 지나온 칸 수
+    dist[0][0] = 1
+    q = deque([(0, 0)])                    # 대괄호로 감싸서 시작
+    while q:
+        r, c = q.popleft()
+        if (r, c) == (n - 1, m - 1):
+            return dist[r][c]
+        for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+            nr, nc = r + dr, c + dc
+            if 0 <= nr < n and 0 <= nc < m and maps[nr][nc] == 1 and dist[nr][nc] == 0:
+                dist[nr][nc] = dist[r][c] + 1   # 넣는 순간 방문 표시
+                q.append((nr, nc))              # 튜플 하나
+    return -1
+```
+
+- **최단거리 / 최소 이동 횟수 → BFS** (DFS는 최단 보장 X)
+- 체크리스트
+  - `maps[행][열]` 순서
+  - 범위 `0 <= r < n` (`-1` 없음)
+  - 큐에 **넣을 때** 방문 표시
+  - `append((a, b))` 소괄호 두 겹
+
 ## DFS
 
 **재귀 함수 만드는 순서**

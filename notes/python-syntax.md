@@ -4,7 +4,7 @@
 
 - [enumerate](#enumerate) · [sort / sorted](#sort--sorted) · [split / map](#split--map) · [zip](#zip)
 - [음수 인덱스](#음수-인덱스--1) · [startswith](#startswith) · [dict.get](#dictget) · [deque](#deque)
-- [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
+- [2차원 리스트](#2차원-리스트) · [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
 
 ---
 
@@ -205,7 +205,92 @@ while q:           # 빌 때까지 반복
 
 - 스택(뒤에서 넣고 뒤에서 빼기)은 그냥 리스트 `append` / `pop`으로 충분
 - 큐(뒤에서 넣고 앞에서 빼기)는 `deque`
-- 쓴 문제: 기능개발, 프로세스
+
+### 괄호 언제 뭘 쓰나 (헷갈림 주의)
+
+**만들 때 `deque([...])`: 대괄호 필요**
+
+`deque()`는 "여러 개가 든 묶음"을 받아서 **안의 원소를 하나씩** 꺼내 넣음
+
+```python
+deque([(0, 0, 1)])   # [(0, 0, 1)]   → 튜플 1개가 든 큐  O
+deque((0, 0, 1))     # [0, 0, 1]     → 숫자 3개로 쪼개짐  X
+deque([1, 2, 3])     # [1, 2, 3]     → 숫자 3개
+deque()              # 빈 큐
+```
+
+- 시작 원소가 튜플 하나라면 **리스트로 한 번 감싸서** `[(0, 0, 1)]`
+
+**넣을 때 `append((...))`: 대괄호 쓰면 안 됨**
+
+`append()`는 받은 것 **하나를 그대로** 넣음
+
+```python
+q.append((nx, ny, d))    # 튜플 1개 들어감               O
+q.append([(nx, ny, d)])  # 리스트 1개가 통째로 들어감     X
+q.append(nx, ny, d)      # TypeError: 인자는 1개만 받음   X
+```
+
+- 소괄호가 **두 겹**: 바깥은 함수 호출, 안쪽은 튜플
+- 여러 개를 한 번에 넣으려면 `q.extend([a, b, c])`
+
+| | 받는 것 | 동작 |
+|---|---|---|
+| `deque(묶음)` | 리스트 등 | 안의 원소를 **하나씩** 넣음 |
+| `q.append(x)` | 아무거나 1개 | `x` **그대로** 넣음 |
+| `q.extend(묶음)` | 리스트 등 | 안의 원소를 **하나씩** 넣음 |
+
+**꺼낼 때 언패킹**
+
+```python
+x, y, d = q.popleft()    # 넣은 튜플이 (x, y, d) 3개짜리여야 함
+```
+
+- `ValueError: not enough values to unpack (expected 3, got 1)`
+  → 꺼낸 값이 3개짜리 튜플이 아니라 1개짜리 (보통 `append`할 때 괄호 실수)
+- 쓴 문제: 기능개발, 프로세스, 타겟 넘버, 게임 맵 최단거리
+
+---
+
+## 2차원 리스트
+
+**만들기**
+
+```python
+n, m = 3, 4                                  # 3행 4열
+visited = [[False] * m for _ in range(n)]    # O
+visited = [[False] * m] * n                  # X: 모든 행이 같은 리스트를 가리킴
+```
+
+```python
+a = [[0] * 3] * 2
+a[0][0] = 9
+print(a)    # [[9, 0, 0], [9, 0, 0]]  ← 한 줄만 바꿨는데 전부 바뀜
+```
+
+**인덱스: `maps[행][열]`**
+
+```python
+maps = [[1, 0, 1],
+        [1, 1, 1]]
+len(maps)       # 2  행 개수 (세로 길이)
+len(maps[0])    # 3  열 개수 (가로 길이)
+maps[1][2]      # 1  1번 행, 2번 열
+```
+
+- 행 = 세로 위치 = `y` = `r`, 열 = 가로 위치 = `x` = `c` → **`maps[y][x]`**, `maps[r][c]`
+- `x`, `y`가 헷갈리면 처음부터 `r`, `c`로 이름 짓기
+- 범위 검사: `0 <= r < len(maps) and 0 <= c < len(maps[0])` (**`-1` 붙이지 않음**)
+- 범위 검사를 **먼저**, 그 다음 `maps[r][c]` 확인 (반대로 하면 IndexError)
+
+**상하좌우 이동**
+
+```python
+for dr, dc in [(1, 0), (-1, 0), (0, 1), (0, -1)]:
+    nr, nc = r + dr, c + dc
+```
+
+- 쓴 문제: 게임 맵 최단거리
 
 ---
 
