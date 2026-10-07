@@ -157,16 +157,65 @@ FROM ANIMAL_INS;
 | `'%EL'` | EL로 끝 |
 | `'_EL'` | 아무 글자 1개 + EL |
 
+**LIKE는 "조건"이라 조건 자리에 씀**
+
 ```sql
--- 조건마다 컬럼을 다시 써야 함
-COL LIKE 'Spayed%' OR COL LIKE 'Neutered%'     -- O
-COL LIKE 'Spayed%' OR 'Neutered%'              -- X
+WHERE OPTIONS LIKE '%통풍시트%'                         -- 행 거르기 (가장 많이 씀)
+CASE WHEN SEX LIKE '%Neutered%' THEN 'O' ELSE 'X' END  -- 값 바꾸기 (중성화 여부 파악하기)
+IF(NAME LIKE '%EL%', 'Y', 'N')
 ```
+
+- 혼자 `SELECT OPTIONS LIKE '%통풍%'`처럼 쓰면 거르지 않고 1/0(참/거짓) 값만 나옴
+- 행을 거르려면 `WHERE`(묶기 전) 또는 `HAVING`(묶은 뒤)
+
+**여러 개 중 하나라도 포함: `LIKE`를 조건마다 따로 + `OR`**
+
+```sql
+WHERE OPTIONS LIKE '%통풍시트%'
+   OR OPTIONS LIKE '%열선시트%'
+   OR OPTIONS LIKE '%가죽시트%'                -- O
+
+WHERE OPTIONS LIKE '%통풍시트%' OR '%열선시트%' -- X: 뒤쪽은 비교 대상이 없음
+WHERE OPTIONS LIKE ('%통풍시트%', '%열선시트%') -- X: LIKE는 값 하나만 받음
+```
+
+- 다른 조건과 `AND`로 섞이면 `OR` 묶음 전체를 괄호로
+
+```sql
+WHERE CAR_TYPE = 'SUV'
+  AND (OPTIONS LIKE '%통풍시트%' OR OPTIONS LIKE '%열선시트%')
+```
+
+- 줄이는 방법 (MySQL): `WHERE OPTIONS REGEXP '통풍시트|열선시트|가죽시트'` (`|` = 또는)
+
+**LIKE vs IN**
+
+| | `LIKE '%값%'` | `IN ('값1', '값2')` |
+|---|---|---|
+| 비교 방식 | **일부 포함** (패턴) | **정확히 일치** |
+| 여러 값 | `OR`로 여러 번 | 괄호 안에 나열 |
+| `%`, `_` | 사용 | 사용 불가 (그냥 글자로 취급) |
+
+```sql
+-- OPTIONS = '통풍시트' 처럼 딱 그 값만 있을 때만 찾음
+WHERE OPTIONS IN ('통풍시트', '열선시트')
+-- = OPTIONS = '통풍시트' OR OPTIONS = '열선시트'
+```
+
+- `OPTIONS`가 `'열선시트,스마트키,주차감지센서'`처럼 **여러 값이 섞인 문자열**이면 `IN`으로는 못 찾음 → `LIKE '%열선시트%'`
+- 컬럼 값이 딱 하나로 정해진 경우(`CAR_TYPE`, `ANIMAL_TYPE` 등)에는 `IN`이 간단
+
+```sql
+WHERE CAR_TYPE IN ('세단', 'SUV')
+```
+
+**기타**
 
 - MySQL은 기본적으로 대소문자 구분 안 함
 - `AND`/`OR` 섞을 때는 **괄호 필수** (`AND`가 먼저 계산됨)
 - `%`가 없는 `LIKE '경제'`는 `= '경제'`와 같음
 - 문자열은 작은따옴표 `'...'`가 표준
+- 쓴 문제: 이름에 el이 들어가는 동물 찾기, 보호소에서 중성화한 동물, 자동차 종류 별 특정 옵션이 포함된 자동차 수 구하기
 
 ---
 
