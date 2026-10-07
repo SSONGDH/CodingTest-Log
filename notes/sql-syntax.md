@@ -3,7 +3,8 @@
 ## 목차
 
 - [실행 순서](#실행-순서) · [WHERE vs HAVING](#where-vs-having) · [집계](#집계) · [JOIN](#join)
-- [IS NULL](#is-null) · [IF / CASE](#if--case) · [LIKE](#like) · [날짜 / DATE_FORMAT](#날짜--date_format) · [정렬 / LIMIT](#정렬--limit)
+- [IS NULL](#is-null) · [IF / CASE](#if--case) · [LIKE](#like) · [문자열 자르기 / SUBSTR, LEFT](#문자열-자르기--substr-left)
+- [날짜 / DATE_FORMAT](#날짜--date_format) · [정렬 / LIMIT](#정렬--limit) · [별칭(AS)은 어디서 쓸 수 있나](#별칭as은-어디서-쓸-수-있나)
 
 ---
 
@@ -12,6 +13,38 @@
 `FROM` → `WHERE` → `GROUP BY` → `HAVING` → `SELECT` → `ORDER BY` → `LIMIT`
 
 - 이 순서를 알면 WHERE/HAVING 차이, 별칭을 어디서 쓸 수 있는지가 전부 설명됨
+
+---
+
+## 별칭(AS)은 어디서 쓸 수 있나
+
+```sql
+SELECT SUBSTR(PRODUCT_CODE, 1, 2) AS CATEGORY,
+       COUNT(PRODUCT_ID) AS PRODUCTS
+FROM PRODUCT
+GROUP BY CATEGORY          -- SELECT의 별칭을 GROUP BY에서 사용
+ORDER BY CATEGORY;
+```
+
+| 절 | 별칭 사용 | 이유 |
+|---|---|---|
+| `WHERE` | **불가** | `SELECT`보다 먼저 실행돼서 별칭이 아직 없음 |
+| `GROUP BY` | MySQL만 가능 | 표준 SQL 순서상 불가지만 MySQL이 예외적으로 허용 |
+| `HAVING` | MySQL만 가능 | 위와 같음 |
+| `ORDER BY` | **가능** (모든 DB) | `SELECT` 다음에 실행되므로 별칭이 이미 있음 |
+
+**MySQL의 예외적 허용**
+
+- 실행 순서로 보면 `GROUP BY`, `HAVING`은 `SELECT`보다 먼저라서 별칭을 모르는 게 정상
+- MySQL은 편의를 위해 쿼리를 해석할 때 `SELECT`의 별칭을 미리 인식해서 `GROUP BY`, `HAVING`에서도 쓸 수 있게 해 줌
+- Oracle 등 다른 DB에서는 에러 → 별칭 대신 **식을 그대로** 다시 써야 함
+
+```sql
+GROUP BY SUBSTR(PRODUCT_CODE, 1, 2)   -- 모든 DB에서 동작
+```
+
+- `WHERE CATEGORY = 'A1'`은 MySQL에서도 에러 → `WHERE SUBSTR(PRODUCT_CODE, 1, 2) = 'A1'`
+- 쓴 문제: 카테고리 별 상품 개수 구하기, 입양 시각 구하기(1)
 
 ---
 
@@ -134,6 +167,58 @@ COL LIKE 'Spayed%' OR 'Neutered%'              -- X
 - `AND`/`OR` 섞을 때는 **괄호 필수** (`AND`가 먼저 계산됨)
 - `%`가 없는 `LIKE '경제'`는 `= '경제'`와 같음
 - 문자열은 작은따옴표 `'...'`가 표준
+
+---
+
+## 문자열 자르기 / SUBSTR, LEFT
+
+**`SUBSTR(문자열, 시작 위치, 길이)`**: 시작 위치부터 길이만큼 자르기
+
+```sql
+SUBSTR('A1000011', 1, 2)    -- 'A1'      1번째부터 2글자
+SUBSTR('A1000011', 3, 4)    -- '0000'    3번째부터 4글자
+SUBSTR('A1000011', 3)       -- '000011'  길이 생략 → 끝까지
+SUBSTR('A1000011', -2)      -- '11'      음수 → 뒤에서 2번째부터 끝까지
+```
+
+- **위치는 1부터 시작** (파이썬은 0부터라 헷갈림 주의)
+- `SUBSTRING()`도 완전히 같은 함수
+
+**`LEFT(문자열, 길이)` / `RIGHT(문자열, 길이)`**: 앞/뒤에서 길이만큼
+
+```sql
+LEFT('A1000011', 2)     -- 'A1'   앞에서 2글자
+RIGHT('A1000011', 2)    -- '11'   뒤에서 2글자
+```
+
+- 앞부분만 필요하면 `LEFT(col, 2)` == `SUBSTR(col, 1, 2)` → 더 짧고 읽기 쉬움
+- 중간을 잘라야 하면 `SUBSTR`
+
+| 하고 싶은 것 | 함수 |
+|---|---|
+| 앞 n글자 | `LEFT(col, n)` 또는 `SUBSTR(col, 1, n)` |
+| 뒤 n글자 | `RIGHT(col, n)` 또는 `SUBSTR(col, -n)` |
+| k번째부터 n글자 | `SUBSTR(col, k, n)` |
+
+**파이썬 슬라이싱과 비교**
+
+| SQL | Python |
+|---|---|
+| `SUBSTR(s, 1, 2)` | `s[0:2]` |
+| `SUBSTR(s, 3, 4)` | `s[2:6]` |
+| `LEFT(s, 2)` | `s[:2]` |
+| `RIGHT(s, 2)` | `s[-2:]` |
+
+**기타 문자열 함수**
+
+```sql
+LENGTH('abc')            -- 3   (한글은 바이트 수라 CHAR_LENGTH 사용)
+CONCAT('A', '-', 'B')    -- 'A-B'
+REPLACE('a-b', '-', '')  -- 'ab'
+UPPER('ab'), LOWER('AB')
+```
+
+- 쓴 문제: 카테고리 별 상품 개수 구하기
 
 ---
 
