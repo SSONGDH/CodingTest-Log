@@ -75,6 +75,20 @@ def dfs(node, graph, visited):
             dfs(nxt, graph, visited)
 ```
 
+**연결된 덩어리 개수 세기** (네트워크, 섬의 개수)
+
+```python
+visited = [False] * n
+answer = 0
+for i in range(n):
+    if not visited[i]:      # 처음 보는 곳에서
+        dfs(i)              # 연결된 곳 전부 방문 표시
+        answer += 1         # 덩어리 하나 추가
+```
+
+- 바깥 `for` = 시작점 고르기, 안쪽 `dfs`/`bfs` = 덩어리 하나 다 칠하기
+- 인접 행렬(`computers[cur][nxt] == 1`)이면 `for nxt in range(n)`으로 연결 확인
+
 - 안쪽 함수에서 바깥 변수를 **수정**하려면 `nonlocal 변수명`
 - 깊이가 깊으면 `import sys; sys.setrecursionlimit(10**6)`
 
