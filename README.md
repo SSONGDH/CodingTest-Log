@@ -45,6 +45,7 @@ AI/풀이를 참고한 문제. 안 보고 다시 풀면 체크하기.
 │   ├── string-date/
 │   └── is-null/
 └── notes/              # 문법 및 참고 정리
+    ├── exam-checklist.md   # 시험 직전에 훑어볼 체크리스트
     ├── python-syntax.md
     ├── sql-syntax.md
     ├── algorithm-patterns.md
