@@ -4,7 +4,7 @@
 
 - [enumerate](#enumerate) · [sort / sorted](#sort--sorted) · [split / map](#split--map) · [zip](#zip)
 - [음수 인덱스](#음수-인덱스--1) · [startswith](#startswith) · [dict.get](#dictget) · [deque](#deque)
-- [2차원 리스트](#2차원-리스트) · [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
+- [append / extend](#append--extend) · [2차원 리스트](#2차원-리스트) · [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
 
 ---
 
@@ -249,6 +249,43 @@ x, y, d = q.popleft()    # 넣은 튜플이 (x, y, d) 3개짜리여야 함
 - `ValueError: not enough values to unpack (expected 3, got 1)`
   → 꺼낸 값이 3개짜리 튜플이 아니라 1개짜리 (보통 `append`할 때 괄호 실수)
 - 쓴 문제: 기능개발, 프로세스, 타겟 넘버, 게임 맵 최단거리
+
+---
+
+## append / extend
+
+리스트(와 deque)에 넣는 방법 2가지. **하나를 그대로 넣느냐, 안의 원소를 풀어서 넣느냐** 차이
+
+```python
+a = [1, 2]
+a.append([3, 4])     # [1, 2, [3, 4]]   → 리스트 1개가 통째로 원소 1개
+a = [1, 2]
+a.extend([3, 4])     # [1, 2, 3, 4]     → 3, 4가 하나씩 들어감
+```
+
+| | 받는 것 | 동작 | 길이 변화 |
+|---|---|---|---|
+| `a.append(x)` | 아무거나 1개 | `x` **그대로** 맨 뒤에 | +1 |
+| `a.extend(묶음)` | 리스트, 튜플, 문자열, range 등 | 안의 원소를 **하나씩** 맨 뒤에 | +묶음 길이 |
+| `a + b` | 리스트끼리 | 합친 **새 리스트** 반환 (원본 그대로) | |
+| `a += b` | 묶음 | `extend`와 같음 (원본 바뀜) | |
+
+**헷갈리는 경우**
+
+```python
+a = [1, 2]
+a.extend("ab")       # [1, 2, 'a', 'b']   → 문자열도 한 글자씩 풀림
+a.extend(5)          # TypeError: 'int' object is not iterable  → 묶음만 받음
+a.append(3, 4)       # TypeError: 인자는 1개만 받음
+
+b = a.extend([9])    # b는 None! extend/append는 반환값 없음 (원본만 바꿈)
+```
+
+- `extend`에는 **반복 가능한 것(iterable)** 만 넣을 수 있음. 숫자 하나는 `append`
+- `extend`, `append`, `sort`는 원본을 바꾸고 `None` 반환 → `a = a.extend(...)` 하면 `a`가 `None`이 됨
+- 입력을 한 리스트에 모을 때: `nums.extend(map(int, input().split()))` 처럼 `map`도 바로 넣을 수 있음
+- deque도 같음: `q.extend([a, b])`는 오른쪽에 하나씩, `q.extendleft([a, b])`는 왼쪽에 하나씩 (순서 뒤집혀서 `[b, a, ...]`)
+- 쓴 문제: 네 번째 점 (`append`로 x좌표, y좌표 따로 모음)
 
 ---
 
