@@ -5,6 +5,7 @@
 - [enumerate](#enumerate) · [sort / sorted](#sort--sorted) · [split / map](#split--map) · [zip](#zip)
 - [음수 인덱스](#음수-인덱스--1) · [startswith](#startswith) · [dict.get](#dictget) · [deque](#deque)
 - [append / extend](#append--extend) · [2차원 리스트](#2차원-리스트) · [* 언패킹 / itertools.product](#-언패킹--itertoolsproduct)
+- [자릿수 다루기](#자릿수-다루기--10--10-str)
 
 ---
 
@@ -58,7 +59,7 @@ sorted(pairs, key=lambda x: (-x[0], x[1]))# 첫 번째 내림차순, 두 번째 
 
 - 주의: `answer = arr.sort()`라고 쓰면 `answer`는 `None`
 - 문자열 정렬은 사전순: `"119" < "1195524421" < "97674223"` (전화번호 목록 핵심)
-- 쓴 문제: K번째수, 완주하지 못한 선수, 전화번호 목록
+- 쓴 문제: K번째수, 완주하지 못한 선수, 전화번호 목록, 세 막대
 
 ---
 
@@ -430,4 +431,39 @@ for r, c in product(range(n), range(m)):
 | `permutations(arr, 2)` | 순열: 중복 X, 순서 있음 | 6 |
 | `combinations(arr, 2)` | 조합: 중복 X, 순서 없음 | 3 |
 
-- 쓴 문제: 타겟 넘버 (product), 두 개 뽑아서 더하기 (combinations로도 가능)
+- 쓴 문제: 타겟 넘버 (product), 두 개 뽑아서 더하기 (combinations로도 가능), 블랙잭 (combinations)
+
+---
+
+## 자릿수 다루기 (% 10, // 10, str)
+
+**숫자 연산**: 끝자리를 떼고 지우기를 반복
+
+```python
+n = 245
+digits = []
+while n > 0:
+    digits.append(n % 10)   # 끝자리: 5 → 4 → 2
+    n //= 10                # 끝자리 지우기: 24 → 2 → 0
+print(digits)               # [5, 4, 2]  (뒤에서부터 들어감)
+```
+
+**문자열**: `str()`로 바꿔서 한 글자씩
+
+```python
+n = 245
+sum(map(int, str(n)))       # 11  자릿수 합
+len(str(n))                 # 3   자릿수 개수
+'666' in str(1666)          # True  특정 숫자 패턴 포함 여부
+```
+
+| 하고 싶은 것 | 숫자 연산 | 문자열 |
+|---|---|---|
+| 끝자리 | `n % 10` | `str(n)[-1]` |
+| 끝 세 자리 | `n % 1000` | `str(n)[-3:]` |
+| 자릿수 합 | `while` + `% 10` | `sum(map(int, str(n)))` |
+| 패턴 포함 | `while` + `% 1000 == 666` | `'666' in str(n)` |
+
+- 코테에서는 문자열 방법이 짧고 실수가 적음
+- 리스트 변수 이름을 `list`로 지으면 내장 함수 `list()`를 덮어씀 → `digits`처럼 다른 이름
+- 쓴 문제: 분해합, 영화감독 숌
